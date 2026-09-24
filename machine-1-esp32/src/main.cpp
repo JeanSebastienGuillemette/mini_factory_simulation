@@ -1,21 +1,24 @@
 #include <Arduino.h>
 #include "config.h"
 #include "ServoMotor.h"
+#include "Button.h"
 
 ServoMotor servo(SERVO_PIN, SERVO_CHANNEL, SERVO_MIN_DUTY, SERVO_MAX_DUTY);
+Button startButton(START_BUTTON_PIN, DEBOUNCE_TIME_MS);
 
-void setup() {
-  Serial.begin(115200);
+void setup()
+{
+  Serial.begin(SERIAL_BAUD_RATE);
   servo.begin();
+  startButton.begin();
 }
 
-void loop() {
-  if (SERVO_ENABLED) {
-    servo.moveTo(0);
-    delay(1000);
-    servo.moveTo(90);
-    delay(1000);
-    servo.moveTo(180);
-    delay(1000);
+void loop()
+{
+  startButton.update();
+
+  if (startButton.wasPressed())
+  {
+    Serial.println("PRESSED");
   }
 }

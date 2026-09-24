@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "machine-1-esp32"
+		}
+	],
+	"settings": {
+		"FSharp.suggestGitignore": false,
+		"stm32cube-ide-clangd.path": "cube"
+	}
+}

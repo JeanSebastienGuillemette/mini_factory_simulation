@@ -8,13 +8,13 @@ See [mini_industrial_embedded_learning_project_context.md](docs/mini_industrial_
 **Workflow for every step:**
 1. Build the hardware → 2. Smallest possible test program → 3. Understand the code → 4. Add exactly one concept → 5. Test again → 6. Log it here → continue
 
-**Entry template** (copy under a step when you complete it):
+**Entry template** (copy into the [Log](#log) when you complete a step, oldest first):
 
 ```text
-Date:
-What I built/wired:
-What I learned (the WHY):
-Problems / how I fixed them:
+### YYYY-MM-DD — Phase X: <step>
+- Built/wired:
+- Learned (the WHY):
+- Issues/fixes:
 ```
 
 ---
@@ -23,8 +23,8 @@ Problems / how I fixed them:
 
 | Phase | Machine | Topic | Status |
 |------:|---------|-------|:------:|
-| 1  | M1 — ESP32 #1   | Servo works                    | [ ] |
-| 2  | M1 — ESP32 #1   | ON button                      | [ ] |
+| 1  | M1 — ESP32 #1   | Servo works                    | [x] |
+| 2  | M1 — ESP32 #1   | ON button                      | [~] |
 | 3  | M1 — ESP32 #1   | OFF button                     | [ ] |
 | 4  | M1 — ESP32 #1   | EMERGENCY button + state machine | [ ] |
 | 5  | M1 — ESP32 #1   | FreeRTOS                       | [ ] |
@@ -45,10 +45,10 @@ Problems / how I fixed them:
 
 Learn: GPIO output, PWM, servo control, power considerations, basic timing.
 
-- [X] Servo physically connected (signal, 5 V supply, common GND)
-- [X] Basic servo test (servo moves)
-- [X] Servo moves to known positions (0°, 90°, 180°)
-- [X] I can explain how the servo signal works (pulse width → angle)
+- [x] Servo physically connected (signal, 5 V supply, common GND)
+- [x] Basic servo test (servo moves)
+- [x] Servo moves to known positions (0°, 90°, 180°)
+- [x] I can explain how the servo signal works (pulse width → angle)
 
 ---
 
@@ -60,10 +60,10 @@ Behavior: press ON → machine becomes ON → servo starts/moves.
 
 Learn: digital input, pull-up/pull-down, button state, basic state handling.
 
-- [ ] ON button wired (with pull-up or pull-down chosen and understood)
-- [ ] Button state read and printed to Serial
+- [x] ON button wired (with pull-up or pull-down chosen and understood)
+- [x] Button state read and printed to Serial
 - [ ] Pressing ON starts the servo
-- [ ] I can explain why a floating input is a problem
+- [x] I can explain why a floating input is a problem
 
 ---
 
@@ -219,11 +219,16 @@ Learn: I2C, addresses, SDA/SCL, Pi I2C peripherals, LCD control. (Existing LCD a
 
 ## Log
 
-Add dated entries here as you go (newest first).
+Add dated entries here as you go (oldest first). Detailed notes: [machine-1-esp32/src/notes.md](machine-1-esp32/src/notes.md).
 
-<!--
-### YYYY-MM-DD — Phase X: <step>
-- Built/wired:
-- Learned:
-- Issues/fixes:
--->
+### 2026-09-23 — Phase 1: Servo works
+- Built/wired: project repo set up (README, CHANGELOG, context doc in `docs/`). PlatformIO project `machine-1-esp32`. SG90 signal on GPIO13, power from 5 V (USB), ground shared with the ESP32.
+- Code: LEDC channel 0 at 50 Hz, 16-bit resolution. `angleToDuty()` maps 0–180° to duty 1638–7864 and clamps out-of-range angles. `moveServo()` steps through 0°, 90°, 180°.
+- Learned (the WHY): the servo reads the absolute pulse width, not the duty ratio. LEDC generates PWM in hardware with no CPU work. Integer division truncates, so multiply first. Clamping is safer than rejecting. C++ scope, pass by value, prototypes.
+- Issues/fixes: the datasheet's 1–2 ms didn't reach the full range; calibrated 0.5–2.4 ms on the real servo. Upload failed with "wrong boot mode", so hold BOOT during "Connecting...". Flashing C++ erased MicroPython.
+
+### 2026-09-24 — Phase 2: ON button read and debounced
+- Built/wired: START button on GPIO27 (`INPUT_PULLUP`, button to GND). Pins 26 (OFF) and 25 (EMERGENCY) chosen and reserved in `config.h`.
+- Code: servo logic refactored into a `ServoMotor` class. millis() debounce written in `main.cpp`, then moved into a reusable `Button` class (`begin()`, `update()`, `wasPressed()`, `isPressed()`). Pins, debounce time and serial baud rate live in `config.h`, and `main.cpp` passes them in.
+- Learned (the WHY): floating inputs and pull-ups, safe GPIO choice (strapping/flash/input-only pins), level vs edge, contact bounce, C++ types and `printf` formats.
+- Issues/fixes: `delay(100)` hid the bounce; `delay(0)` revealed several PRESSED per press. A 500 ms debounce swallowed normal taps, so 50 ms is used. Tested: hands-off = nothing, long hold = one PRESSED, 10 taps = 10.
