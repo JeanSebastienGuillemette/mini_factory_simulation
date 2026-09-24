@@ -1,0 +1,12 @@
+Servo:
+- A servo needs 50 Hz with a 0.5–2.4 ms pulse, and why that's different from dimming an LED
+- LEDC: a channel is a hardware generator, a pin is attached to it, and the hardware produces the signal with no CPU work
+- Integer division truncates, so you multiply first and divide last (and on the Mega, watch for 16-bit overflow)
+- Variable scope and lifetime, and pass by value
+- Clamping vs rejecting bad input, and why clamping is safer here (
+    if (angle < 0) {
+    angle = 0;
+  } else if (angle > 180) {
+    angle = 180;
+  }
+  )

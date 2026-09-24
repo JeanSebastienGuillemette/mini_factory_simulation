@@ -1,7 +1,7 @@
 # Changelog — Mini Factory Simulation
 
 Step-by-step progress log for the mini industrial embedded learning project.
-See [mini_industrial_embedded_learning_project_context.md](mini_industrial_embedded_learning_project_context.md) for the full roadmap.
+See [mini_industrial_embedded_learning_project_context.md](docs/mini_industrial_embedded_learning_project_context.md) for the full roadmap.
 
 **Legend:** `[ ]` Not started · `[~]` In progress · `[x]` Complete
 
