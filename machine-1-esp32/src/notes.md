@@ -148,6 +148,64 @@ Phase numbers follow docs/mini_industrial_embedded_learning_project_context.md.
 - config.h holds constants only. A non-const variable defined in a header
   included by two .cpp files → linker error (multiple definition).
 
+### Button class
+- Built by MOVING the working main.cpp debounce code into a class, not
+  rewriting it: the globals became private members (m_lastReading,
+  m_stableState, m_lastChangeTime). One object per button → three buttons
+  = three objects, each with its own state. With globals, three buttons
+  would need three copies of every variable.
+- Constructor takes the pin AND the debounce time. The class never
+  includes config.h: main.cpp passes the values in (same as ServoMotor).
+- Initializer list for all members, m_ prefix: same conventions across
+  the project.
+- API mirrors level vs edge:
+  - isPressed(): true while held (debounced level).
+  - wasPressed(): true once per press, then resets (edge event).
+- update() samples the pin and runs the debounce. It must run EVERY loop,
+  because the debounce measures time. wasPressed() is called whenever the
+  logic cares. The m_pressedEvent flag decouples sampling from consuming.
+  → It's a one-slot queue. In Phase 5 (FreeRTOS), ButtonTask produces events,
+    MachineTask consumes them, and a FreeRTOS queue replaces the flag.
+
+### const methods
+- `bool isPressed() const;` promises the method doesn't modify any member.
+  The compiler rejects any mutation inside it.
+- wasPressed() can't be const: it clears m_pressedEvent.
+- Only const methods can be called through a `const Button&` (later).
+
+### Flag vs count
+- A bool flag says "something happened", not "how many times".
+  Two presses between two wasPressed() calls → true, true → seen as ONE.
+- Fine for START (one press or two, same result). Wrong for a production
+  counter: it silently UNDERCOUNTS.
+- Fix: an int counter, or a queue that keeps every event in order.
+
+### Header comments = the contract
+- Users read the .h, not the .cpp. Usage rules go in the header:
+  "Must be called every loop(). Presses are missed otherwise."
+- Header comments say WHAT a method does and what the caller must do.
+  HOW it works (millis, no blocking) belongs in the .cpp.
+- Don't comment what the signature already shows (e.g. what const means).
+
+### delay() vs non-blocking timing (next step)
+- The sweep uses delay(1000) × 3. During those 3 s, update() never runs:
+  - a short press is NEVER seen;
+  - a held press is detected up to 3 s LATE.
+  → Unacceptable for START, dangerous for EMERGENCY.
+- Fix: the same pattern as the debounce. Every loop: "has 1000 ms passed
+  since the last move?" No → return immediately. Yes → move to the next
+  step, note the time.
+- State to keep: the step index in the sequence + the time of the last move.
+- The sweep lives in main.cpp for now. It's machine BEHAVIOR, not a servo
+  property: ServoMotor stays generic (moveTo an angle). Later it moves to a
+  machine class (Phase 4 state machine) / MachineTask (Phase 5).
+- This is what FreeRTOS generalizes in Phase 5.
+
+### Small habits
+- SERIAL_BAUD_RATE in config.h. It must match monitor_speed in
+  platformio.ini (two places, same value → comment the link).
+- Using code I didn't write is fine IF I can explain every line.
+
 ### Workflow habits
 - BUILD before pasting code. The compiler catches mistakes in seconds.
 - "It doesn't work" isn't a bug report: give the output, what I did, and

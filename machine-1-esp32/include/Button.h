@@ -4,9 +4,9 @@ class Button {
 public:
   Button(int pin, unsigned long debounceMs);
   void begin();
-  void update();
-  bool isPressed() const;
-  bool wasPressed();
+  void update(); // Must be called every loop(). Presses are missed otherwise.
+  bool isPressed() const; // True when the button is held down (debounced). INPUT_PULLUP: pressed = LOW.
+  bool wasPressed(); // True once per press, then resets until next press
 
 private:
   int m_pin;

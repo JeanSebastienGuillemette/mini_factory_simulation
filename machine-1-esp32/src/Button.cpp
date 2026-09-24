@@ -10,7 +10,6 @@ void Button::begin()
   pinMode(m_pin, INPUT_PULLUP);
 }
 
-// Call once per loop(): millis() debounce, no blocking.
 void Button::update()
 {
   int currentReading = digitalRead(m_pin);
@@ -32,13 +31,11 @@ void Button::update()
   }
 }
 
-// True while the button is held down (debounced). INPUT_PULLUP: pressed = LOW.
 bool Button::isPressed() const
 {
   return m_stableState == LOW;
 }
 
-// True once per press, then resets until the next press.
 bool Button::wasPressed()
 {
   bool pressed = m_pressedEvent;
